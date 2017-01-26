@@ -5,18 +5,26 @@ MIT License
 Author: Mo Morsi <mo at morsi dot org>
 ===
 
-vsearch is a simple plugin that enhances the native grep mechanism and uses sed to facilitate in-editor file search & replacement.
+vsearch is a simple plugin that enhances the native grep mechanism
+and uses sed to facilitate in-editor file search & replacement.
 
-Note: it's best combined with a 'rooting' plugin (such as vim-rooter: https://github.com/airblade/vim-rooter) which anchors the editor
-to the root project working directory regardless of the location of the file being edited underneath.
+Note: it's best combined with a 'rooting' plugin
+(such as vim-rooter: https://github.com/airblade/vim-rooter)
+which anchors the editor to the root project working directory
+regardless of the location of the file being edited underneath.
+
 
 ===
 
 Installation:
 
-Vundle is the supported installation mechanism. See https://github.com/VundleVim/Vundle.vim for Vundle installation instructions.
+Vundle is the supported installation mechanism.
 
-Once Vundle is installed and configured, installation is as simple as adding the following to the plugin sections of your ~/.vim/vimrc:
+See https://github.com/VundleVim/Vundle.vim for Vundle installation
+instructions.
+
+Once Vundle is installed and configured, installation is as simple
+as adding the following to the plugin sections of your ~/.vim/vimrc:
 
   Plugin 'movitto/vim-vsearch'
 
@@ -32,27 +40,44 @@ vsearch provides two commands:
   :VReplace <search> <replace> [file] [file]....
 
 
-:VSearch is a simple enhancement ontop of the 'grep!' mechanism built into VIM, relying on the external 'grep' program
-to perform a search. Besides invoking 'grep!' so as _not_ to automatically bring up the first search result, VSearch opens
-the quickfix buffer containing the search results. With :VSearch one can run a search against their project (or any
-portion) and see the results, without interrupting their current environment/workflow.
+:VSearch is a simple enhancement ontop of the 'grep!' mechanism built
+into VIM, relying on the external 'grep' program to perform a search.
+
+Besides invoking 'grep!' so as _not_ to automatically bring up the first
+search result, VSearch opens the quickfix buffer containing the search
+results.
+
+With :VSearch one can run a search against their project (or any
+portion) and see the results, without interrupting their current
+environment/workflow.
 
 
-:VReplace first runs a search in a similar manner to :VSearch using the specified search and file arguments. Note files may
-be in any form accepted by grep, including directories and regex patterns.
+:VReplace first runs a search in a similar manner to :VSearch using
+the specified search and file arguments.
 
-The substitution will be performed in memory and the temporary results output to the user who is then prompted for confirmation.
+Note files may be in any form accepted by grep, including directories
+and regex patterns.
 
-If cancelled, no further action is performed, but if confirmed, the 'find' and 'sed' programs are invoked with the necessary
-options to perform the replacement.
+The substitution will be performed in memory and the temporary results
+output to the user who is then prompted for confirmation.
+
+If cancelled, no further action is performed, but if confirmed, the
+'find' and 'sed' programs are invoked with the necessary options to
+perform the replacement.
+
+
 
 ===
 
 Configuration:
 
-vsearch relies on the 'grep', 'sed', and 'find' programs to execute it's functionality. If not configured, these will be
-loaded from their default locations (/usr/bin/) and if they still cannot be found, VSearch and VReplace will fail with
-errors.
+vsearch relies on the 'grep', 'sed', and 'find' programs to execute
+its functionality.
+
+If not configured, these will be loaded from their default
+locations (/usr/bin/) and if they still cannot be found, VSearch
+and VReplace will fail with errors.
+
 
 The default locations may be overloaded with the following options:
 
