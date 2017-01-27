@@ -89,7 +89,7 @@ endfunc
 
 
 " ============================================================================
-" Find & replace mechanism using grep and sed.
+" Search & Replace mechanism using grep and sed.
 " Takes 2 or 3 arguments:
 "   - search pattern and replacement (file path will be cwd)
 "   - search pattern, replacement, and file path
@@ -106,7 +106,7 @@ endfunc
 "   :VReplace some thing file1 file2 file_regex...
 " ============================================================================
 function! VReplace(...)
-  if !s:ValidateGrep() || !s:ValidateSed() || !s:ValidateFind()
+  if !s:ValidateGrep() || !s:ValidateSed()
     return
   endif
 
