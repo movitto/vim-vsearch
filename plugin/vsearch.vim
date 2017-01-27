@@ -2,7 +2,7 @@
 " File:        vsearch.vim
 " Description: Search & Replace plugin for VIM
 " Author:      Mo Morsi <mo at morsi dot org>
-" Version:     0.4.2
+" Version:     0.4.3
 " Last Change: 01/26/17
 " License:     MIT
 " ============================================================================
@@ -24,10 +24,6 @@ if !exists("g:vsearch_sed")
   let g:vsearch_sed = "/usr/bin/sed"
 endif
 
-if !exists("g:vsearch_find")
-  let g:vsearch_find = "/usr/bin/find"
-endif
-
 function! s:ValidateGrep()
   if !executable(g:vsearch_grep)
     echohl ErrorMsg
@@ -46,14 +42,33 @@ function! s:ValidateSed()
   return 1
 endfunc
 
-function! s:ValidateFind()
-  if !executable(g:vsearch_find)
-    echohl ErrorMsg
-    echo "vsearch requires find"
-    return 0
-  endif
-  return 1
-endfunc
+" few util functions
+
+function! GetBufferList()
+  redir =>buflist
+  silent! ls!
+  redir END
+  return split(buflist, '\n')
+endfunction
+
+function! GetActiveBufferList()
+  redir =>buflist
+  silent! ls! a
+  redir END
+  return split(buflist, '\n')
+endfunction
+
+function! GetActiveBufferNames()
+  let l:r = []
+  for a in GetActiveBufferList()
+    call add(l:r, substitute(split(a)[2], '"', '', 'g'))
+  endfor
+  return l:r
+endfunction
+
+function! Strip(input_string)
+  return substitute(a:input_string, '^\s*\(.\{-}\)\s*$', '\1', '')
+endfunction
 
 
 " ============================================================================
@@ -68,7 +83,7 @@ function! VSearch(...)
   endif
 
   " used grep! to load results but not jump to first one
-  silent exec 'grep! ' . join(a:000)
+  silent exec 'grep! -r ' . join(a:000)
   copen
 endfunc
 
@@ -155,33 +170,64 @@ function! VReplace(...)
   endif
 
   " display implending change
+  let l:files     = []
+  let l:files_str = ""
   echohl None
   for d in getqflist()
-    echo bufname(d.bufnr) ':' d.lnum '=' d.text "=>" substitute(d.text, l:srch, l:rplc, 'g')
+    let l:bufname = bufname(d.bufnr)
+
+    " XXX
+    if l:bufname =~ 'NERD_tree.*'
+      continue
+    endif
+
+    echo bufname ':' d.lnum '=' d.text "=>" substitute(d.text, l:srch, l:rplc, 'g')
+    let l:files_str = l:files_str . ' ' . bufname
+    call add(l:files, bufname)
   endfor
 
+
   " prompt user for confirmation
-  let prompt = input("Make Changes (y/n)? ")
+  let prompt = Strip(input("Make Changes (y/n)? "))
   if prompt == 'y' || prompt == 'Y'
     echo " "
 
-    " cleanup for shell
-    let l:es = substitute(l:srch, '/', '\\/', 'g')
-    let l:es = substitute(l:es,   '"', '\\"', 'g')
-    let l:er = substitute(l:rplc, '/', '\\/', 'g')
-    let l:er = substitute(l:er,   '"', '\\"', 'g')
+    " detect if any open buffers contains file to change
+    let l:verify_overwrite = 0
+    for a in GetActiveBufferNames()
+      for f in l:files
+        if a == f
+          echoh1 WarningMsg
+          echo a ' is currently being edited'
+          let l:verify_overwrite = 1
+        endif
+      endfor
+    endfor
 
-    " run replacement and check result
-    let result = system(g:vsearch_find . ' ' . l:file . ' -exec ' . g:vsearch_grep . ' -i "s/'. l:es .'/'. l:er .'/g" {} \;')
-    if v:shell_error != 0
-      " TODO rollback mechanism (?)
-      echohl ErrorMsg
-      echo "Error During Replace"
-      echo result
-      return
+    if l:verify_overwrite
+      let prompt = Strip(input("Overwrite (y/n)? "))
     endif
 
-    " TODO handle buffers containing modified files (refresh here, or detect above & quit before sed)
+    if prompt == 'y' || prompt == 'Y'
+      " cleanup for shell
+      let l:es = substitute(l:srch, '/', '\\/', 'g')
+      let l:es = substitute(l:es,   '"', '\\"', 'g')
+      let l:er = substitute(l:rplc, '/', '\\/', 'g')
+      let l:er = substitute(l:er,   '"', '\\"', 'g')
+
+      " run replacement and check result
+      let result = system(g:vsearch_sed . ' -i "s/'. l:es .'/'. l:er .'/g" ' . l:files_str)
+      if v:shell_error != 0
+        " TODO rollback mechanism (?)
+        "      (perhaps integrate w/ vim 'undo' system)
+        echohl ErrorMsg
+        echo "Error During Replace"
+        echo result
+        return
+      endif
+
+      " TODO 'smart' indentation mechanism ?
+    endif
   endif
 endfunc
 
